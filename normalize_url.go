@@ -14,5 +14,6 @@ func normalizeURL(rawUrl string) (string, error) {
 	}
 	normalizedUrl := parsedUrl.Host + parsedUrl.Path
 	normalizedUrl = strings.TrimRight(normalizedUrl, "/")
+	normalizedUrl = strings.ToLower(normalizedUrl)
 	return normalizedUrl, nil
 }

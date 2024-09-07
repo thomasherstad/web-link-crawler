@@ -43,6 +43,11 @@ func TestNormalizeURL(t *testing.T) {
 			inputURL: "https://blog.boot.dev/path/is/longer/",
 			expected: "blog.boot.dev/path/is/longer",
 		},
+		{
+			name:     "Capital letters",
+			inputURL: "https://blog.BOOT.Dev/PATH",
+			expected: "blog.boot.dev/path",
+		},
 	}
 
 	for i, testCase := range tests {
