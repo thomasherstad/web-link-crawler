@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// Need to add more tests
 func TestGetUrlsFromHtml(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -40,6 +41,19 @@ func TestGetUrlsFromHtml(t *testing.T) {
 				`,
 			inputURL: "https://blog.boot.dev",
 			expected: []string{"https://blog.boot.dev/path/one", "https://other.com/path/one"},
+		},
+		{
+			name: "html without a-tags",
+			inputHTML: `
+				<html>
+					<body>
+						<span>Boot.dev</span>
+						<span>Boot.dev</span>
+					</body>
+				</html>
+				`,
+			inputURL: "",
+			expected: nil,
 		},
 	}
 

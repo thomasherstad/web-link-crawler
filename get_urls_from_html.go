@@ -19,8 +19,6 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	var links []string
 	_, _, links = traverseHTML(doc, rawBaseURL, toVisit, links)
 
-	fmt.Println(links)
-
 	return links, nil
 }
 
