@@ -15,24 +15,60 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 		return nil, err
 	}
 
-	//Because the OG one is actually ""
-	doc = doc.FirstChild
+	var toVisit []*html.Node
+	var links []string
+	_, _, links = traverseHTML(doc, rawBaseURL, toVisit, links)
 
-	// Just to make it not complain when I compile
-	if rawBaseURL == "" {
-		return nil, nil
-	}
-	getLink(doc)
+	fmt.Println(links)
 
-	//Just to make it not complain when I compile
-	return []string{}, nil
+	return links, nil
 }
 
-// In-work
-func getLink(node *html.Node) {
-	if node.Data == "a" {
-		return
+func getLinkFromNode(node *html.Node, rawBaseURL string) string {
+	link := ""
+	for _, attribute := range node.Attr {
+		if attribute.Key == "href" {
+			link = attribute.Val
+			if link[:4] != "http" {
+				link = rawBaseURL + link
+			}
+			return link
+		}
 	}
+	return link
 }
 
-// Next step: use the getLink function to get just the link from an a-tag. Then make another crawl function that traverses the tree and that can be recursively called
+func traverseHTML(node *html.Node, rawBaseURL string, toVisit []*html.Node, links []string) (*html.Node, []*html.Node, []string) {
+
+	if node == nil {
+		return nil, toVisit, links
+	}
+
+	//If a-tag, get link
+	if node.Type == html.ElementNode && node.Data == "a" {
+		link := getLinkFromNode(node, rawBaseURL)
+		if link != "" {
+			links = append(links, link)
+		}
+	}
+
+	// if next sibling: Add next sibling to the stack
+	if node.NextSibling != nil {
+		toVisit = append(toVisit, node.NextSibling)
+	}
+	// if first child: Add first child to the stack
+	if node.FirstChild != nil {
+		toVisit = append(toVisit, node.FirstChild)
+	}
+
+	// traverse the next node from the toVisit stack
+	l := len(toVisit)
+	if l < 1 {
+		return nil, toVisit, links
+	}
+	newNode := toVisit[l-1]
+	toVisit = toVisit[:l-1]
+
+	return traverseHTML(newNode, rawBaseURL, toVisit, links)
+
+}

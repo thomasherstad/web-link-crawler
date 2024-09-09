@@ -22,7 +22,7 @@ func TestGetUrlsFromHtml(t *testing.T) {
 				</html>
 				`,
 			inputURL: "https://blog.boot.dev",
-			expected: []string{"hello"},
+			expected: []string{"https://blog.boot.dev"},
 		},
 		{
 			name: "absolute and relative URLs",
