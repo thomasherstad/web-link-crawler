@@ -15,9 +15,13 @@ func main() {
 	} else if len(os.Args[1:]) > 1 {
 		fmt.Println("too many arguments provided")
 		os.Exit(1)
-	} else {
-		url := os.Args[1]
-		fmt.Printf("starting crawl of: %v\n", url)
-		fmt.Println(getHTML(url))
-	}
+	} 
+
+	url := os.Args[1]
+	fmt.Printf("starting crawl of: %v\n", url)
+	
+	pages := make(map[string]int)
+	pages = crawlPage(url, url, pages)
+
+	fmt.Println(pages)
 }

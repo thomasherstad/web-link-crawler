@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"net/url"
 
 	"golang.org/x/net/html"
 )
@@ -11,7 +12,7 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	reader := strings.NewReader(htmlBody)
 	doc, err := html.Parse(reader)
 	if err != nil {
-		fmt.Println("Problem parsing html: %w", err)
+		fmt.Errorf("Problem parsing html: %w", err)
 		return nil, err
 	}
 
@@ -22,18 +23,34 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	return links, nil
 }
 
-func getLinkFromNode(node *html.Node, rawBaseURL string) string {
+func getLinkFromNode(node *html.Node, rawBaseURL string) (string, error) {
 	link := ""
 	for _, attribute := range node.Attr {
 		if attribute.Key == "href" {
-			link = attribute.Val
-			if link[:4] != "http" {
-				link = rawBaseURL + link
+			newURL, err := url.Parse(attribute.Val)
+			if err != nil {
+				return "", fmt.Errorf("error parsing url: %s, error: %w", attribute.Val, err)
 			}
-			return link
+
+			baseURL, err := url.Parse(rawBaseURL)
+			if err != nil {
+				return "", fmt.Errorf("error parsing baseURL: %s, error: %w", rawBaseURL, err)
+			}
+			
+			//link is relative
+			if newURL.Host == "" && newURL.Path != "" {
+				//Build url again
+				link = baseURL.Scheme + "://" + baseURL.Host + newURL.Path
+				return link, nil
+			}
+			
+			//link is absolute
+			link = attribute.Val
+
+			return link, nil
 		}
 	}
-	return link
+	return link, nil
 }
 
 func traverseHTML(node *html.Node, rawBaseURL string, toVisit []*html.Node, links []string) (*html.Node, []*html.Node, []string) {
@@ -44,10 +61,12 @@ func traverseHTML(node *html.Node, rawBaseURL string, toVisit []*html.Node, link
 
 	//If a-tag, get link
 	if node.Type == html.ElementNode && node.Data == "a" {
-		link := getLinkFromNode(node, rawBaseURL)
-		if link != "" {
-			links = append(links, link)
+		link, err := getLinkFromNode(node, rawBaseURL)
+		if err != nil {
+			fmt.Println(err)
+			return nil, toVisit, links
 		}
+		links = append(links, link)
 	}
 
 	// if next sibling: Add next sibling to the stack
