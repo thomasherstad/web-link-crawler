@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"net/url"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -12,8 +12,7 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	reader := strings.NewReader(htmlBody)
 	doc, err := html.Parse(reader)
 	if err != nil {
-		fmt.Errorf("Problem parsing html: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("problem parsing html: %w", err)
 	}
 
 	var toVisit []*html.Node
@@ -36,14 +35,14 @@ func getLinkFromNode(node *html.Node, rawBaseURL string) (string, error) {
 			if err != nil {
 				return "", fmt.Errorf("error parsing baseURL: %s, error: %w", rawBaseURL, err)
 			}
-			
+
 			//link is relative
 			if newURL.Host == "" && newURL.Path != "" {
 				//Build url again
 				link = baseURL.Scheme + "://" + baseURL.Host + newURL.Path
 				return link, nil
 			}
-			
+
 			//link is absolute
 			link = attribute.Val
 

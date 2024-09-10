@@ -1,19 +1,21 @@
 package main
 
 import (
-	"net/url"
 	"fmt"
+	"net/url"
 )
 
 func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) map[string]int {
 	baseURL, err := url.Parse(rawBaseURL)
 	if err != nil {
-		fmt.Errorf("error parsing rawBaseURL: %s, error: %w", rawBaseURL, err)
+		newError := fmt.Errorf("error parsing rawBaseURL: %s, error: %w", rawBaseURL, err)
+		fmt.Println(newError)
 		return pages
 	}
 	currentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
-		fmt.Errorf("error parsing rawCurrentURL: %s, error: %w", rawCurrentURL, err)
+		newErr := fmt.Errorf("error parsing rawCurrentURL: %s, error: %w", rawCurrentURL, err)
+		fmt.Println(newErr)
 		return pages
 	}
 	if baseURL.Host != currentURL.Host {
@@ -22,7 +24,8 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) map[strin
 
 	normalizedURL, err := normalizeURL(rawCurrentURL)
 	if err != nil {
-		fmt.Errorf("error normalizing url: %s, error: %w", rawCurrentURL, err)
+		newErr := fmt.Errorf("error normalizing url: %s, error: %w", rawCurrentURL, err)
+		fmt.Println(newErr)
 		return pages
 	}
 
@@ -36,15 +39,16 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) map[strin
 	fmt.Printf("\nGetting html from %s\n", normalizedURL)
 	html, err := getHTML(rawCurrentURL)
 	if err != nil {
-		fmt.Errorf("error getting the html: %w", err)
-		fmt.Println(err)
+		newErr := fmt.Errorf("error getting the html: %w", err)
+		fmt.Println(newErr)
 		return pages
 	}
 	fmt.Printf("Got html from %s. Extracting links.\n", normalizedURL)
-	
+
 	newLinks, err := getURLsFromHTML(html, rawBaseURL)
 	if err != nil {
-		fmt.Errorf("error getting URLs from html: %w", err)
+		newErr := fmt.Errorf("error getting URLs from html: %w", err)
+		fmt.Println(newErr)
 		return pages
 	}
 	for _, link := range newLinks {
