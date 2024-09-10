@@ -3,57 +3,65 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"sync"
 )
 
-func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) map[string]int {
-	baseURL, err := url.Parse(rawBaseURL)
-	if err != nil {
-		newError := fmt.Errorf("error parsing rawBaseURL: %s, error: %w", rawBaseURL, err)
-		fmt.Println(newError)
-		return pages
-	}
+type config struct {
+	pages              map[string]int
+	baseURL            *url.URL
+	mu                 *sync.Mutex
+	concurrencyControl chan struct{}
+	wg                 *sync.WaitGroup
+}
+
+func (c *config) crawlPage(rawCurrentURL string) {
+
 	currentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
 		newErr := fmt.Errorf("error parsing rawCurrentURL: %s, error: %w", rawCurrentURL, err)
 		fmt.Println(newErr)
-		return pages
+		return
 	}
-	if baseURL.Host != currentURL.Host {
-		return pages
+
+	if c.baseURL.Host != currentURL.Host {
+		return
 	}
 
 	normalizedURL, err := normalizeURL(rawCurrentURL)
 	if err != nil {
 		newErr := fmt.Errorf("error normalizing url: %s, error: %w", rawCurrentURL, err)
 		fmt.Println(newErr)
-		return pages
+		return
 	}
 
-	_, ok := pages[normalizedURL]
+	//Lock the pages map
+	c.mu.Lock()
+	_, ok := c.pages[normalizedURL]
 	if ok {
-		pages[normalizedURL]++
-		return pages
+		c.pages[normalizedURL]++
+		c.mu.Unlock() //Unlock if url is in the map
+		return
 	}
-	pages[normalizedURL] = 1
+	c.pages[normalizedURL] = 1
+	c.mu.Unlock() //Unlock if url is not already in the map
 
 	fmt.Printf("\nGetting html from %s\n", normalizedURL)
 	html, err := getHTML(rawCurrentURL)
 	if err != nil {
 		newErr := fmt.Errorf("error getting the html: %w", err)
 		fmt.Println(newErr)
-		return pages
+		return
 	}
 	fmt.Printf("Got html from %s. Extracting links.\n", normalizedURL)
 
-	newLinks, err := getURLsFromHTML(html, rawBaseURL)
+	newLinks, err := getURLsFromHTML(html, c.baseURL.String())
 	if err != nil {
 		newErr := fmt.Errorf("error getting URLs from html: %w", err)
 		fmt.Println(newErr)
-		return pages
+		return
 	}
 	for _, link := range newLinks {
-		pages = crawlPage(rawBaseURL, link, pages)
+		c.crawlPage(link)
 	}
 
-	return pages
 }

@@ -3,25 +3,30 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 )
 
 func main() {
-	//if number of cli arguments <  1, print "no website provided"
-	//if number of cli arguments > 1, print "too  many arguments provided"
-	//if number of cli arguments == 1, print "starting crawl of: Base url"
+
 	if len(os.Args[1:]) < 1 {
 		fmt.Println("no website provided")
 		os.Exit(1)
 	} else if len(os.Args[1:]) > 1 {
 		fmt.Println("too many arguments provided")
 		os.Exit(1)
-	} 
+	}
 
 	url := os.Args[1]
 	fmt.Printf("starting crawl of: %v\n", url)
-	
-	pages := make(map[string]int)
-	pages = crawlPage(url, url, pages)
 
-	fmt.Println(pages)
+	//TODO
+	var c config
+	c.pages = make(map[string]int)
+	c.mu = &sync.Mutex{}
+	maxConcurrency := 1
+	c.concurrencyControl = make(chan struct{}, maxConcurrency)
+	c.wg = &sync.WaitGroup{}
+	c.crawlPage(url)
+
+	fmt.Println(c.pages)
 }
