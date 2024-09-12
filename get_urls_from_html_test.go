@@ -55,6 +55,20 @@ func TestGetUrlsFromHtml(t *testing.T) {
 			inputURL: "",
 			expected: nil,
 		},
+		{
+			name: "relative url without '/'",
+			inputHTML: `
+				<html>
+					<body>
+						<div>
+							<a href="user?id=ocean" class="hnuser">ocean</a>
+						</div>
+					</body>
+				</html>
+			`,
+			inputURL: "https://news.ycombinator.com",
+			expected: []string{"https://news.ycombinator.com/user?id=ocean"},
+		},
 	}
 
 	for i, testCase := range tests {

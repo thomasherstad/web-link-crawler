@@ -52,7 +52,7 @@ func (c *config) crawlPage(rawCurrentURL string) {
 	c.pages[normalizedURL] = 1
 	c.mu.Unlock() //Unlock if url is not already in the map
 
-	fmt.Printf("\nGetting html from %s\n", normalizedURL)
+	fmt.Printf("Getting html from %s\n", normalizedURL)
 	html, err := getHTML(rawCurrentURL)
 	if err != nil {
 		newErr := fmt.Errorf("error getting the html: %w", err)

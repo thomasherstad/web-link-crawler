@@ -52,5 +52,6 @@ func main() {
 	go c.crawlPage(startURL)
 
 	c.wg.Wait()
-	fmt.Println(c.pages)
+
+	printReport(c.pages, startURL)
 }

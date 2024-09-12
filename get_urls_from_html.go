@@ -23,7 +23,6 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 }
 
 func getLinkFromNode(node *html.Node, rawBaseURL string) (string, error) {
-	link := ""
 	for _, attribute := range node.Attr {
 		if attribute.Key == "href" {
 			newURL, err := url.Parse(attribute.Val)
@@ -36,20 +35,12 @@ func getLinkFromNode(node *html.Node, rawBaseURL string) (string, error) {
 				return "", fmt.Errorf("error parsing baseURL: %s, error: %w", rawBaseURL, err)
 			}
 
-			//link is relative
-			if newURL.Host == "" && newURL.Path != "" {
-				//Build url again
-				link = baseURL.Scheme + "://" + baseURL.Host + newURL.Path
-				return link, nil
-			}
+			resolvedURL := baseURL.ResolveReference(newURL)
 
-			//link is absolute
-			link = attribute.Val
-
-			return link, nil
+			return resolvedURL.String(), nil
 		}
 	}
-	return link, nil
+	return "", nil
 }
 
 func traverseHTML(node *html.Node, rawBaseURL string, toVisit []*html.Node, links []string) (*html.Node, []*html.Node, []string) {
