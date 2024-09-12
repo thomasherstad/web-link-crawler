@@ -15,6 +15,8 @@ type config struct {
 }
 
 func (c *config) crawlPage(rawCurrentURL string) {
+	defer func() { <-c.concurrencyControl }()
+	defer c.wg.Done()
 
 	currentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
@@ -61,7 +63,8 @@ func (c *config) crawlPage(rawCurrentURL string) {
 		return
 	}
 	for _, link := range newLinks {
-		c.crawlPage(link)
+		c.wg.Add(1)
+		go c.crawlPage(link)
 	}
 
 }
