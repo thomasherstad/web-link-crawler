@@ -12,11 +12,16 @@ type config struct {
 	mu                 *sync.Mutex
 	concurrencyControl chan struct{}
 	wg                 *sync.WaitGroup
+	maxPages           int
 }
 
 func (c *config) crawlPage(rawCurrentURL string) {
 	defer func() { <-c.concurrencyControl }()
 	defer c.wg.Done()
+
+	if len(c.pages) > c.maxPages {
+		return
+	}
 
 	currentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {

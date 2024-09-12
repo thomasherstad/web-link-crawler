@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 )
 
 func main() {
 
-	if len(os.Args[1:]) < 1 {
+	if len(os.Args[1:]) < 3 {
 		fmt.Println("no website provided")
 		os.Exit(1)
-	} else if len(os.Args[1:]) > 1 {
+	} else if len(os.Args[1:]) > 3 {
 		fmt.Println("too many arguments provided")
 		os.Exit(1)
 	}
@@ -31,7 +32,18 @@ func main() {
 	}
 
 	c.mu = &sync.Mutex{}
-	maxConcurrency := 1
+	maxConcurrency, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Printf("Maxconcurrency is not an int. Error: %v\n", err)
+		return
+	}
+
+	c.maxPages, err = strconv.Atoi(os.Args[3])
+	if err != nil {
+		fmt.Printf("maxPages is not an int. Error: %v\n", err)
+		return
+	}
+
 	c.concurrencyControl = make(chan struct{}, maxConcurrency)
 	c.wg = &sync.WaitGroup{}
 
